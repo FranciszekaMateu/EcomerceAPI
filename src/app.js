@@ -15,6 +15,9 @@ const httpServer = app.listen(PORT, err => {
 app.use('/virtual' ,express.static(__dirname+'/public'))
 const io = new Server(httpServer);
 
+const session = require('express-session')
+const FileStore = require('session-file-store')
+
 app.set('view engine', 'handlebars');
 app.engine('handlebars', handlebars.engine())
 app.set('views', "./views")

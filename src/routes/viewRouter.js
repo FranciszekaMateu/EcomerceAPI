@@ -14,12 +14,12 @@ router.get('/chat' ,(request, response) =>{
         })
     }
  })
-router.get("/login",(request, response) =>{
-    response.render("login")
+ router.get('/register', async (req, res)=>{
+    
+    res.status(200).render('register')
 })
-router.post("/api/login",(req,res)=>
-{
-    const {email} = req.body
-    res.redirect(`/chat?usuario=${email}`);
+router.get('/login', async (req, res)=>{
+    // res.status(200).render('login')
+    res.status(200).render('login')
 })
 module.exports = router;
