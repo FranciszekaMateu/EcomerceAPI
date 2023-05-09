@@ -2,7 +2,6 @@ const { InMemoryTicketRepository } = require("../repositories/ticket.reposotorie
 const { errorDictionary, AppError } = require("../middlewares/manejadorErrores");
 const {ticketDao} = require("../Dao/factory");
 const ticketRepository = new InMemoryTicketRepository(ticketDao);
-
 class TicketController {
   async createTicket(req, res, next) {
     try {
