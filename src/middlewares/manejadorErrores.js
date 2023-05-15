@@ -11,7 +11,6 @@ class AppError extends Error {
     CART_NOT_FOUND: new AppError(404, 'Carrito no encontrado'),
     USER_NOT_FOUND: new AppError(404, 'Usuario no encontrado'),
     INVALID_INPUT: new AppError(400, 'Datos de entrada inválidos'),
-    // ...otros errores personalizados
   };
   
   function errorHandler(err, req, res, next) {

@@ -1,4 +1,3 @@
-// userRepository.js
 class UserRepository {
     constructor(dao) {
       this.dao = dao;
