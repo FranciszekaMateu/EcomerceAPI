@@ -2,7 +2,7 @@ const { Router } = require('express');
 const router = Router();
 const ProductRepository = require('../repositories/product.repositories'); 
 const {ProductDao} = require('../Dao/factory'); // Asegúrate de tener correctamente importado el DAO
-
+const {adminMiddleware} = require("../middlewares/auth")
 const productRepository = new ProductRepository(ProductDao);
 
 router.get('/getAll', async (req, res) => {
@@ -40,7 +40,7 @@ router.get('/getAll', async (req, res) => {
   }
 });
 
-router.post('/create', async (req, res) => {
+router.post('/create',adminMiddleware, async (req, res) => {
   try {
     const {
       title,
@@ -78,7 +78,7 @@ router.post('/create', async (req, res) => {
     });
   }
 });
-router.put('/update/:pid', async (req, res) => {
+router.put('/update/:pid',adminMiddleware, async (req, res) => {
   try {
     const { pid } = req.params;
     const updateProduct = req.body;
@@ -95,7 +95,7 @@ router.put('/update/:pid', async (req, res) => {
   }
 });
 
-  router.delete('/delete/:pid', async (req, res) => {
+  router.delete('/delete/:pid',adminMiddleware, async (req, res) => {
     try {
       const { pid } = req.params;
       const result = await productRepository.removeProduct(pid);

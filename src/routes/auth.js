@@ -21,9 +21,9 @@ router.post('/login', async (req, res, next) => {
     const esContraseñaCorrecta = await bcrypt.compare(password, usuario.password);
 
     if (esContraseñaCorrecta) {
-      const { _id, username } = usuario
+      const { _id, username,role } = usuario
 
-      res.cookie('userData', { _id, username, email, }, { httpOnly: true });
+      res.cookie('userData', { _id, username, email,role }, { httpOnly: true });
       return res.status(200).json({
         status: 'success',
         payload: usuario,

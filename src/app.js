@@ -1,11 +1,11 @@
 const express = require('express');
 const app = express();
-const handlebars = require('express-handlebars');
 const path = require('path');
 const router = require('./routes/index');
 const cookieParser = require('cookie-parser');
+const bcrypt = require('bcrypt');
 
-app.use(express.json())
+app.use(express.json());
 app.use(cookieParser());
 
 app.set("auth", false);
@@ -13,14 +13,14 @@ app.set("user", "");
 app.use(express.urlencoded({ extended: true }));
 app.use('/virtual', express.static(__dirname + '/public'));
 
-
-app.set('view engine', 'handlebars');
-app.engine('handlebars', handlebars.engine());
 app.use("/api", router);
-app.set('views', "./views");
 
+const salt = bcrypt.genSaltSync(10);
+const hash = bcrypt.hashSync("admincoder", salt);
+console.log(hash);
 
 module.exports = app;
+
 
 
 

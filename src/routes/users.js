@@ -3,23 +3,27 @@
     const { UserRepository } = require('../repositories/user.repositorie');
     const { UserDao } = require('../Dao/factory'); 
     const UserModel= new  UserRepository(UserDao);
-    router.post('/register', async (req, res = response) =>{
+    router.post('/register', async (req, res = response) => {
         try {
-            let {email,password,first_name,last_name } = req.body
-            if (!password || !email ) {
-                return res.status(400).send({ message: 'te faltan datos'})
+            let { email, password, first_name, last_name } = req.body;
+            if (!password || !email) {
+                return res.status(400).send({ message: 'Te faltan datos' });
             }
-            let role = "user"
-            let result  = await UserModel.create({
+            let role = "user";
+            await UserModel.create({
                 first_name,
                 last_name,
                 email,
                 password,
                 role
-            })
+            });
+            
+            // Envía un mensaje de éxito
+            res.send({ message: 'Usuario creado exitosamente' });
         } catch (error) {
-            console.log(error)
+            console.log(error);
+            res.status(500).send({ message: 'Error al crear el usuario' });
         }
-    })
+    });
     module.exports = router
 

@@ -1,6 +1,5 @@
 const { Router } = require('express')
 
-const viewRouter = require("./viewRouter")
 
 const products = require("./products")
 const users = require("./users")
@@ -19,8 +18,6 @@ const swaggerUiExpress = require('swagger-ui-express')
 
 router.use(errorHandler);
 
-
-router.use("/",viewRouter)
 
 router.use("/products",products)
 
