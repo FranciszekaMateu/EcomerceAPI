@@ -1,4 +1,4 @@
-const { UserModel } = require("./models/user.model");
+const { UserModel } = require("./models/userModel");
 
 class UserDaoMongo {
     constructor() {
@@ -12,7 +12,14 @@ class UserDaoMongo {
             return new Error(error);
         }
     }
-
+    async getByEmail(email) {
+        try {
+            const usuario = await UserModel.findOne({ email });
+            return usuario;
+        } catch (error) {
+            return new Error(error);
+        }
+    }
     async create(newUser) {
         try {
             return await this.userModel.create(newUser);
@@ -20,6 +27,14 @@ class UserDaoMongo {
             return new Error(error);
         }
     }
+    async updateUserCart(userId, cartId) {
+        try {
+          await UserModel.updateOne({ _id: userId }, { $set: { cart: cartId } });
+          console.log('Cart asociado al usuario con éxito');
+        } catch (error) {
+          console.error('Error al asociar el carrito al usuario:', error);
+        }
+      }
 }
 
 module.exports = UserDaoMongo;

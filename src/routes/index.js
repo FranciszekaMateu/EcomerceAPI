@@ -3,8 +3,8 @@ const { Router } = require('express')
 const viewRouter = require("./viewRouter")
 
 const products = require("./products")
-
-const { errorHandler } = require('./middlewares/errorHandler');
+const users = require("./users")
+const { errorHandler } = require('../middlewares/manejadorErrores');
 
 const carts = require("./carts")
 
@@ -15,24 +15,25 @@ const auth = require("./auth")
 const swaggerJsDoc = require('swagger-jsdoc')
 const swaggerUiExpress = require('swagger-ui-express')
 
-app.use(errorHandler);
+//const { generateMockProducts } = require('../utils/mocking');
 
-const { generateMockProducts } = require('../utils/mocking');
+router.use(errorHandler);
+
 
 router.use("/",viewRouter)
 
-router.use("/api/products",products)
+router.use("/products",products)
 
-router.use("/api/carts",carts)
+router.use("/carts",carts)
 
-module.exports = router;
+router.use("/users",users)
 
-router.use("api/auth",auth)
+router.use("/auth",auth)
 
-app.get('/mockingproducts', (req, res) => {
-    const products = generateMockProducts();
-    res.json(products);
-  });
+//app.get('/mockingproducts', (req, res) => {
+//    const products = generateMockProducts();
+//    res.json(products);
+//  });
 
 const swaggerOptions = {
     definition: {
@@ -44,4 +45,6 @@ const swaggerOptions = {
     apis: [`${__dirname}/docs/**/*.yaml`]
 }
 const specs = swaggerJsDoc(swaggerOptions)
-app.use('/apidocs', swaggerUiExpress.serve, swaggerUiExpress.setup(specs))
+router.use('/apidocs', swaggerUiExpress.serve, swaggerUiExpress.setup(specs))
+
+module.exports = router;

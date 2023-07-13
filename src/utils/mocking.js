@@ -1,4 +1,5 @@
 
+
 const faker = require('faker');
 
 function generateMockProducts(numeroProductos = 100) {

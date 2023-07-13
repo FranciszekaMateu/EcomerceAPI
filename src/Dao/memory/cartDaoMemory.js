@@ -14,7 +14,7 @@ class CartDaoMemory {
   createCart() {
     const newCart = { id: Date.now(), products: [] };
     carts.push(newCart);
-    return newCart;
+    return newCart
   }
 
   addProductInCart(cid, product) {

@@ -1,6 +1,8 @@
+const  CartModel  = require("./models/cartModel");
+
 class CartDaoMongo {
-    constructor(Cart) {
-        this.Cart = Cart;
+    constructor() {
+        this.Cart =   CartModel;
     }
 
     async getCarts() {
@@ -62,7 +64,19 @@ class CartDaoMongo {
             return new Error('Error deleting product from cart' + error);
         }
     }
-
+    async updateProductQuantity(cid, pid, quantity) {
+        try {
+          const updatedCart = await this.Cart.findOneAndUpdate(
+            { _id: cid, 'products.product': pid },
+            { $set: { 'products.$.quantity': quantity } },
+            { new: true }
+          );
+    
+          return updatedCart;
+        } catch (error) {
+          return new Error('Error updating product quantity in cart' + error);
+        }
+      }
     async deleteCart(cid) {
         try {
             return await this.Cart.findOneAndUpdate(
@@ -76,6 +90,5 @@ class CartDaoMongo {
     }
 }
 
-module.exports = {
+module.exports = 
     CartDaoMongo
-};

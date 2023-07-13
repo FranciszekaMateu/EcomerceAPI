@@ -1,48 +1,55 @@
-const { persistence, dbConnection } = require('../config/config.js');
+const { persistence}= require('../config/config.js');
+const {dbConnection}= require('../config/conectionDb.js');
 
 let ProductDao;
 let UserDao;
 let CartDao;
 let OrderDao;
-let ticketDao;
+let TicketDao;
 
 switch (persistence) {
-    case 'MONGO':
-        dbConnection(); 
-        const ProductDaoMongo = require('./mongo/productDaoMongo.js');
-        ProductDao = ProductDaoMongo;
+  case 'MONGO':
+    const ProductDaoMongo = require('./mongo/productDaoMongo.js');
+    ProductDao = new ProductDaoMongo();
 
-        const UserDaoMongo = require('./mongo/userDapMongo.js');
-        UserDao = UserDaoMongo;
+    const UserDaoMongo = require('./mongo/userDaoMongo.js');
+    UserDao = new UserDaoMongo();
 
-        const CartDaoMongo = require("./mongo/cartDaoMongo.js")
-        CartDao = CartDaoMongo;
-        
-        const ticketDaoMongo = require("./mongo/ticketDaoMongo.js")
-        ticketDao = ticketDaoMongo;
-        break;
+    const CartDaoMongo = require('./mongo/cartDaoMongo.js');
+    CartDao = new CartDaoMongo();
 
-    case 'MEMORY':
-        const UserDaoMemory = require('./memory/user.memory.js');
-        UserDao = UserDaoMemory;
+    const TicketDaoMongo = require('./mongo/ticketDaoMongo.js');
+    TicketDao = new TicketDaoMongo();
 
-        const ProductDaoMongo = require('./memory/productDaoMongo.js');
-        ProductDao = ProductDaoMongo;
-        
-        const cartDaoMemory = require('./memory/cartDaoMongo.js')
-        CartDao = cartDaoMemory;
-        break;
-    case 'ARCHIVO':
-        break;
+    dbConnection();
+    break;
 
-    default:
-        break;
+  case 'MEMORY':
+    const ProductDaoMemory = require('./memory/productDaoMemory.js');
+    ProductDao = ProductDaoMemory;
+
+    const UserDaoMemory = require('./memory/userDaoMemory.js');
+    UserDao = UserDaoMemory;
+
+    const CartDaoMemory = require('./memory/cartDaoMemory.js');
+    CartDao = CartDaoMemory;
+
+    const TicketDaoMemory = require('./memory/ticketDaoMemory.js');
+    TicketDao = TicketDaoMemory;
+    break;
+
+  case 'ARCHIVO':
+    // Agrega la implementación correspondiente para el caso de 'ARCHIVO'
+    break;
+
+  default:
+    throw new Error('Persistencia no válida');
 }
 
 module.exports = {
-    ProductDao,
-    UserDao,
-    CartDao,
-    OrderDao,
-    ticketDao
+  ProductDao,
+  UserDao,
+  CartDao,
+  OrderDao,
+  TicketDao
 };

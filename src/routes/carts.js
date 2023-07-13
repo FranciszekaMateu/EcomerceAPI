@@ -1,13 +1,29 @@
 const express = require('express');
-const { CartRepository } = require('../repositories/cartRepository');
-const { TicketRepository } = require('../repositories/ticketRepository');
-const { ProductRepository } = require('../repositories/productRepository');
-const { CartDao, ProductDao,ticketDao } = require('../dao/factory'); 
-const ticketRepository =  TicketRepository(ticketDao)
+const { CartRepository } = require('../repositories/cart.repositories');
+const  TicketRepository  = require('../repositories/ticket.reposotories');
+const  ProductRepository  = require('../repositories/product.repositories');
+const { CartDao, ProductDao,TicketDao,UserDao } = require('../Dao/factory'); 
+const { UserRepository } = require('../repositories/user.repositorie');
+const ticketRepository = new  TicketRepository(TicketDao);
 const cartRepository = new CartRepository(CartDao);
 const productRepository = new ProductRepository(ProductDao);
+const userRepository = new UserRepository(UserDao)
 const router = express.Router();
-router.get('/:cid', async (req, res) => {
+
+const checkCartAssociation = async (req, res, next) => {
+  const CartUserId = req.cookies.CartId;
+  const cartId = req.params.cid;
+  try {
+    if (cartId != CartUserId) {
+      return res.status(401).json({ message: 'Acceso denegado' });
+    }
+    next();
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Error interno del servidor' });
+  }
+};
+router.get('/:cid',checkCartAssociation, async (req, res) => {
     try {
       const cart = await cartRepository.getCart(req.params.cid);
       if (!cart) {
@@ -20,7 +36,7 @@ router.get('/:cid', async (req, res) => {
     }
   });
   
-  router.delete('/:cid/products/:pid', async (req, res) => {
+  router.delete('/:cid/productsDelete/:pid',checkCartAssociation, async (req, res) => {
     try {
       const cart = await cartRepository.deleteProductInCart(req.params.cid, req.params.pid);
       if (!cart) {
@@ -33,7 +49,7 @@ router.get('/:cid', async (req, res) => {
     }
   });
   
-  router.put('/:cid', async (req, res) => {
+  router.put('/:cid',checkCartAssociation, async (req, res) => {
     try {
       const cart = await cartRepository.updateCartProducts(req.params.cid, req.body);
       if (!cart) {
@@ -45,8 +61,33 @@ router.get('/:cid', async (req, res) => {
       res.status(500).send();
     }
   });
+  router.post('/:cid/productsAdd/:pid',checkCartAssociation, async (req, res) => {
+    try {
+      const { cid, pid } = req.params;
+      const { quantity } = req.body;
   
-  router.put('/:cid/products/:pid', async (req, res) => {
+      if (!cid || !pid || !quantity) {
+        return res.status(400).json({ message: 'cid, pid, and quantity are required' });
+      }
+  
+      const product = {
+        id: pid,
+        quantity: parseInt(quantity, 10),
+      };
+      const updatedCart = await cartRepository.addProductInCart(cid, product);
+  
+      if (!updatedCart) {
+        return res.status(404).json({ message: 'Cart not found' });
+      }
+  
+      res.json(updatedCart);
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ message: 'Internal server error' });
+    }
+  });
+  
+  router.put('/:cid/productsUpdate/:pid',checkCartAssociation, async (req, res) => {
     try {
       const cart = await cartRepository.updateProductQuantity(req.params.cid, req.params.pid, req.body.quantity);
       if (!cart) {
@@ -59,7 +100,7 @@ router.get('/:cid', async (req, res) => {
     }
   });
   
-  router.delete('/:cid', async (req, res) => {
+  router.delete('/:cid',checkCartAssociation, async (req, res) => {
     try {
       const cart = await cartRepository.deleteCart(req.params.cid);
       if (!cart) {
@@ -71,25 +112,25 @@ router.get('/:cid', async (req, res) => {
       res.status(500).send();
     }
   });
-  router.post('/:cid/purchase', async (req, res) => {
+  router.post('/:cid/purchase',checkCartAssociation, async (req, res) => {
     try {
       const cartId = req.params.cid;
-      const cart = await cartRepository.getCart(cartId);
+      const cart = (await cartRepository.getCart(cartId))[0];
       if (!cart) {
         res.status(404).json({ message: 'Carrito no encontrado' });
         return;
       }
   
       let unprocessedProducts = [];
-      const purchasedProducts = [];
+      let purchasedProducts = [];
+      let ticketData;
   
-      for (const cartItem of cart.items) {
-        const product = await productRepository.getProductById(cartItem.productId);
+      for (const cartItem of cart.products) {
+        const product = await productRepository.getProductById(cartItem.product);
         if (!product) {
           unprocessedProducts.push(cartItem);
           continue;
         }
-  
         if (product.stock >= cartItem.quantity) {
           product.stock -= cartItem.quantity;
           await productRepository.updateProduct(product._id, { stock: product.stock });
@@ -100,25 +141,39 @@ router.get('/:cid', async (req, res) => {
       }
   
       if (purchasedProducts.length > 0) {
-        const ticketData = {
+        ticketData = {
           userId: cart.userId,
-          items: purchasedProducts,
-          purchaseId: uuidv4(),
+          items: purchasedProducts
         };
         await ticketRepository.createTicket(ticketData);
       }
   
-      await cartRepository.updateCartProducts(cartId, unprocessedProducts);
+      for (const cartItem of unprocessedProducts) {
+        await cartRepository.deleteProductInCart(cartId, cartItem.product);
+      }
   
       res.status(200).json({
         message: 'Compra procesada',
-        purchaseId: ticketData.purchaseId,
-        unprocessedProducts: unprocessedProducts.map(item => item.productId),
+        purchaseId: ticketData ? ticketData.purchaseId : null,
+        unprocessedProducts: unprocessedProducts.map(item => item.product),
       });
     } catch (error) {
       console.error(error);
       res.status(500).json({ message: 'Error interno del servidor' });
     }
   });
-  
+  router.post('/create', async (req, res) => {
+    try {
+      const newCart = await cartRepository.createCart();
+      const userId = req.cookies.userData._id;
+      await userRepository.updateUserCart(userId,newCart._id)
+      console.log(newCart);
+      res.cookie('cartId', newCart._id, { httpOnly: true });
+      res.status(200).json({ message: 'Carrito creado exitosamente' });
+
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ message: 'Error interno del servidor' });
+    }
+  });
 module.exports = router;

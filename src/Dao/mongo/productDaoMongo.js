@@ -1,5 +1,7 @@
+
+const { productModel } = require("./models/productModel");
 class ProductDaosMongo {
-    constructor(productModel) {
+    constructor() {
         this.product = productModel;
     }
 
@@ -24,9 +26,9 @@ class ProductDaosMongo {
 
     async create(newProduct) {
         try {
-            return await this.product.create(newProduct);
+          return await this.product.create(newProduct);
         } catch (err) {
-            return new Error(err);
+          throw new Error(err); 
         }
     }
 

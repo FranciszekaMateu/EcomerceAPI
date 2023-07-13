@@ -1,4 +1,4 @@
-// cart.dto.js
+
 class CartDTO {
     constructor(id, products) {
         this.id = id;

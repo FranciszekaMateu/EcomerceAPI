@@ -1,58 +1,47 @@
-const ITicketRepository = require('./ITicketRepository');
-const { v4: uuidv4 } = require('uuid');
-
-class InMemoryTicketRepository extends ITicketRepository {
-  constructor() {
-    super();
-    this.tickets = [];
+class TicketRepository {
+  constructor(ticketDao) {
+    this.ticketDao = ticketDao;
   }
 
-  createTicket(ticketData) {
-    const newTicket = {
-      ...ticketData,
-      _id: uuidv4(),
-      code: uuidv4(),
-      purchase_datetime: new Date(),
-    };
-    this.tickets.push(newTicket);
-    return newTicket;
-  }
-
-  findTicketById(ticketId) {
-    return this.tickets.find((ticket) => ticket._id === ticketId) || null;
-  }
-
-  findAllTickets() {
-    return this.tickets;
-  }
-
-  updateTicket(ticketId, ticketData) {
-    const ticketIndex = this.tickets.findIndex((ticket) => ticket._id === ticketId);
-
-    if (ticketIndex === -1) {
-      return null;
+  async getTickets({ limit = 10, page = 1, category = '', sort = 1 }) {
+    try {
+      return await this.ticketDao.get({ limit, page, category, sort });
+    } catch (err) {
+      throw new Error(err);
     }
-
-    const updatedTicket = {
-      ...this.tickets[ticketIndex],
-      ...ticketData,
-    };
-
-    this.tickets[ticketIndex] = updatedTicket;
-    return updatedTicket;
   }
 
-  deleteTicket(ticketId) {
-    const ticketIndex = this.tickets.findIndex((ticket) => ticket._id === ticketId);
-
-    if (ticketIndex === -1) {
-      return null;
+  async getTicketById(ticketId) {
+    try {
+      return await this.ticketDao.getById(ticketId);
+    } catch (err) {
+      throw new Error(err);
     }
+  }
 
-    const deletedTicket = this.tickets[ticketIndex];
-    this.tickets.splice(ticketIndex, 1);
-    return deletedTicket;
+  async createTicket(newTicket) {
+    try {
+      return await this.ticketDao.createTicket(newTicket);
+    } catch (err) {
+      throw new Error(err);
+    }
+  }
+
+  async updateTicket(ticketId, updatedTicket) {
+    try {
+      return await this.ticketDao.update(ticketId, updatedTicket);
+    } catch (err) {
+      throw new Error(err);
+    }
+  }
+
+  async removeTicket(ticketId) {
+    try {
+      return await this.ticketDao.remove(ticketId);
+    } catch (err) {
+      throw new Error(err);
+    }
   }
 }
-
-module.exports = InMemoryTicketRepository;
+module.exports = 
+  TicketRepository

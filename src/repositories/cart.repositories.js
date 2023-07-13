@@ -1,4 +1,3 @@
-// cartRepository.js
 class CartRepository {
     constructor(cartDAO) {
       this.cartDAO = cartDAO;
@@ -23,7 +22,9 @@ class CartRepository {
     async deleteProductInCart(cid, pid) {
       return await this.cartDAO.deleteProductInCart(cid, pid);
     }
-  
+    async updateProductQuantity(cid, pid, quantity) {
+      return await this.cartDAO.updateProductQuantity(cid, pid, quantity);
+    }
     async deleteCart(cid) {
       return await this.cartDAO.deleteCart(cid);
     }

@@ -1,13 +1,14 @@
-const { connect } = require('mongoose')
-
-const url = 'mongodb+srv://omgmyshot:fran2003@cluster0.haawu7c.mongodb.net/?retryWrites=true&w=majority'
+const { connect } = require('mongoose');
+const { url } = require('./config');
+console.log(url)
 const dbConnection = async () => {
-    return await connect(url, err => {
-        if (err) {
-            console.log('No se puede conectar mongodb: ', err)
-            process.exit()
-        }
-        console.log('DB conectada ')
-    })
-}
-module.exports = {dbConnection}
+  try {
+    await connect(url);
+    console.log('DB conectada');
+  } catch (err) {
+    console.log('No se puede conectar a MongoDB:', err);
+    process.exit(1);
+  }
+};
+
+module.exports = { dbConnection };

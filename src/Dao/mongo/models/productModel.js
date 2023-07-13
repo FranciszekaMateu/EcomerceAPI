@@ -44,8 +44,8 @@ ProductSchema.methods.toJSON = function() {
 
 ProductSchema.plugin(mongoosePaginate);
 
-const ProductModel = model(collection, ProductSchema);
+const productModel = model(collection, ProductSchema);
 
 module.exports = {
-    ProductModel
+    productModel
 };
