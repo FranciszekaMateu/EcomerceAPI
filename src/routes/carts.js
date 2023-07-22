@@ -11,30 +11,40 @@ const userRepository = new UserRepository(UserDao)
 const router = express.Router();
 
 const checkCartAssociation = async (req, res, next) => {
-  const CartUserId = req.cookies.CartId;
-  const cartId = req.params.cid;
   try {
-    if (cartId != CartUserId) {
-      return res.status(401).json({ message: 'Acceso denegado' });
+    if (!req.user) {
+      return res.status(401).json({
+        status: 'error',
+        message: 'Usuario no autenticado',
+      });
     }
+
+    const sessionId = req.sessionID; 
+    const userId = req.user._id;
+
+    if (userId.toString() !== sessionId) {
+      return res.status(401).json({
+        status: 'error',
+        message: 'Acceso no autorizado al carrito',
+      });
+    }
+
+    const user = await UserModel.findById(userId).populate('cart');
+
+    if (!user || !user.cart) {
+      return res.status(404).json({
+        status: 'error',
+        message: 'Carrito no encontrado para el usuario autenticado',
+      });
+    }
+
+    req.cart = user.cart;
+
     next();
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Error interno del servidor' });
+    next(error);
   }
 };
-router.get('/:cid',checkCartAssociation, async (req, res) => {
-    try {
-      const cart = await cartRepository.getCart(req.params.cid);
-      if (!cart) {
-        return res.status(404).send();
-      }
-      res.render('carts', cart);
-    } catch (error) {
-      console.error(error);
-      res.status(500).send();
-    }
-  });
   
   router.delete('/:cid/productsDelete/:pid',checkCartAssociation, async (req, res) => {
     try {
@@ -165,12 +175,11 @@ router.get('/:cid',checkCartAssociation, async (req, res) => {
   router.post('/create', async (req, res) => {
     try {
       const newCart = await cartRepository.createCart();
-      const userId = req.cookies.userData._id;
-      await userRepository.updateUserCart(userId,newCart._id)
+      const userId = req.session.passport.user; // Obtener el userId de la sesión
+      await userRepository.updateUserCart(userId, newCart._id);
       console.log(newCart);
-      res.cookie('cartId', newCart._id, { httpOnly: true });
+      req.session.cartId = newCart._id; // Almacenar el cartId en la sesión
       res.status(200).json({ message: 'Carrito creado exitosamente' });
-
     } catch (error) {
       console.error(error);
       res.status(500).json({ message: 'Error interno del servidor' });

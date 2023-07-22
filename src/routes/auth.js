@@ -2,56 +2,39 @@ const express = require('express');
 const router = express.Router();
 const passport = require('passport');
 const { UserRepository } = require('../repositories/user.repositorie');
-const { UserDao } = require('../Dao/factory'); 
-const UserModel= new  UserRepository(UserDao);
+const { UserDao } = require('../Dao/factory');
+const UserModel = new UserRepository(UserDao);
 const configurePassport = require('../config/passport.config');
 const bcrypt = require('bcrypt');
-router.post('/login', async (req, res, next) => {
-  try {
-    const { email, password } = req.body
-    console.log(email)
-    const usuario = await UserModel.getUserByEmail( email );
-    if (!usuario) {
-      return res.status(401).json({
-        status: 'error',
-        message: 'Credenciales inválidas',
-      });
-    }
-    console.log(usuario,password)
-    const esContraseñaCorrecta = await bcrypt.compare(password, usuario.password);
 
-    if (esContraseñaCorrecta) {
-      const { _id, username,role } = usuario
+configurePassport(passport);
 
-      res.cookie('userData', { _id, username, email,role }, { httpOnly: true });
-      return res.status(200).json({
-        status: 'success',
-        payload: usuario,
-        message: 'Inicio de sesión correcto',
-      });
-    } else {
-      return res.status(401).json({
-        status: 'error',
-        message: 'Credenciales inválidas',
-      });
-    }
-  } catch (error) {
-    next(error);
-  }
-});
-
-router.get('/auth/github/callback', (req, res, next) => {
-  passport.authenticate('github', async (err, usuario) => {
+router.post(
+  '/login',
+  passport.authenticate('local'),
+  async (req, res, next) => {
     try {
-      if (err) {
+      res.status(200).json({
+        status: 'success',
+        message: 'Inicio de sesión correcto',
+        user: req.user,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+
+router.get(
+  '/auth/github/callback',
+  passport.authenticate('github', { session: false }),
+  async (req, res, next) => {
+    try {
+      if (!req.user) {
         return res.redirect('/login');
       }
 
-      if (!usuario) {
-        return res.redirect('/login');
-      }
-
-      const { _id, username, email } = usuario;
+      const { _id, username, email } = req.user;
 
       res.cookie('userData', { _id, username, email }, { httpOnly: true });
 
@@ -59,9 +42,9 @@ router.get('/auth/github/callback', (req, res, next) => {
     } catch (error) {
       next(error);
     }
-  })(req, res, next);
-});
-  
+  }
+);
 
-module.exports = router; 
+module.exports = router;
+
 

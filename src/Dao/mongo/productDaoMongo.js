@@ -7,14 +7,29 @@ class ProductDaosMongo {
 
     async get({ limit = 10, page = 1, category = '', sort = 1 }) {
         try {
-            return await this.product.paginate(
-                category.length !== 0 ? { category: category } : {},
-                { limit, page, lean: true, sort: { price: sort } }
-            );
-        } catch (err) {
-            return new Error(err);
+            const options = {
+                limit,
+                page,
+                lean: true,
+                sort: { price: sort }
+            };
+    
+            // If category is not empty, add it to the query
+            const query = category ? { category } : {};
+    
+            let result = await this.product.paginate(query, options);
+        
+            if (!result.docs || !Array.isArray(result.docs)) {
+                throw new Error("Failed to get products");
+            }
+        
+            return result;
+        
+        } catch (error) {
+            throw new Error(error);
         }
     }
+    
 
     async getById(pid) {
         try {

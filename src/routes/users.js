@@ -18,7 +18,6 @@
                 role
             });
             
-            // Envía un mensaje de éxito
             res.send({ message: 'Usuario creado exitosamente' });
         } catch (error) {
             console.log(error);

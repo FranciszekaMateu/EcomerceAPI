@@ -6,6 +6,7 @@ let UserDao;
 let CartDao;
 let OrderDao;
 let TicketDao;
+console.log(persistence)
 
 switch (persistence) {
   case 'MONGO':

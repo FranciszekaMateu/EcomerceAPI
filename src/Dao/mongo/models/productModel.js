@@ -35,7 +35,7 @@ const ProductSchema = new Schema({
         type: Date,
         default: new Date()
     }
-});
+},{ timestamps: true });
 
 ProductSchema.methods.toJSON = function() {
     const { __v, isActive, ...data } = this.toObject();
